@@ -1,0 +1,4 @@
+DEBUG = True
+SQLALCHEMY_TRACK_MODIFICATIONS = True
+
+SECRET_KEY = 'eduardobitencourt'
