@@ -12,6 +12,8 @@
 {% endblock %}
 {% block content %}
 {% include 'menu_superior.tpl' %}
+
+	
 	 <h2>Inserir informações do perfil</h2>
 	
 		{{wtf.quick_form(form, action=url_for('WebPerfil_post', _id_ = id))}}

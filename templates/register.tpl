@@ -1,6 +1,16 @@
 {% extends 'bootstrap/base.html'%}
 {%import 'bootstrap/wtf.html' as wtf%}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class=flashes style="list-style: none; margin-left:-40px; text-align: center; font-size: 20px;">
+    {% for category, message in messages %}
+      <li class="alert alert-success">{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
 {% block styles%}
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<!-- Bootstrap core CSS -->
@@ -9,7 +19,7 @@
 {% endblock %}
 
 {% block title %}
-	Login
+	Register
 {% endblock %}
 
 {% block scripts %}
@@ -23,6 +33,7 @@
 {% endblock %}
 {% block content %}
 {% include 'menu_superior.tpl' %}
+
 <h1>Register</h1>
 {{ wtf.quick_form(form) }}
 {%endblock%}

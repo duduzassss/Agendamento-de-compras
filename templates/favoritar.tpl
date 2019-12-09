@@ -36,6 +36,18 @@
 {% endblock %}
 {% block content %}
 {% include 'menu_superior.tpl' %}
+	
+	{% with messages = get_flashed_messages(with_categories=true) %}
+	  {% if messages %}
+	    <ul class="flashes" style="list-style: none; margin-left:-40px; text-align: center; font-size: 20px;">
+	    {% for category, message in messages %}
+	      <li class="alert alert-success">{{ message }}</li>
+	    {% endfor %}
+	    </ul>
+	  {% endif %}
+	{% endwith %}
+
+
 	<h1 class="titulo">Favoritos</h1>
 	<p class="subtitulo">Escolha os produtos que desejar, para uma proxima compra.</p>
 	<form action="{{url_for('post_fav')}}" method="POST">

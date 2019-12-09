@@ -5,10 +5,8 @@
 
 {% block styles %}
 	<style type="text/css">
-		h1{
-			background-color:red;
-			text-align: center;
-			width: 280px;
+		p{
+			font-size: 17px;
 		}
 	</style>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -19,7 +17,9 @@
 
 {% block content %}
 {% include 'menu_superior.tpl' %}
-	 <h1> Tem certeza que quer deletar?</h1>
+	<div class="alert alert-danger" style="margin-right: 630px; font-size: 30px; color:red;">
+  		<strong>Tem certeza que deseja deletar?</strong>
+	</div>
 		<form method="POST" action="/usuario/del/{{dados.id}}" >
 			<p>Nome: {{dados.username}}</p>
 			<p>Telefone: {{dados.telefone}}</p>
@@ -28,11 +28,13 @@
 			<p>Cartao: {{dados.cartao}}</p>
 			<p>CPF: {{dados.cpf}}</p>
 			<p>Data de nascimento: {{dados.nascimento}}</p>
-			<input type="submit" value="Deletar" style="background-color: #FF0033;font-size: 16px;font-weight: bold; color: white;" />
+			<input type="submit" value="Deletar" class="btn btn-danger" style="font-weight: bold;" />
 
+			<a class="btn btn-info" href="/usuario" style="font-weight: bold;">
+				Cancelar
+			</a>
 		</form>
-		<br>
-		<form method="GET" action="/usuario">
-			<input type="submit" value="Cancelar" style="background-color: blue; font-size: 16px; font-weight: bold; color: white;" />
-		</form>
+		
+			
+	
 {% endblock %}

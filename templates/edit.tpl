@@ -25,17 +25,17 @@ CPF:{{dado.cpf}}</pre>
 	 	<h1>EDITAR</h1>
 		<form method="POST" action="/usuario/edit/{{dado.id}}">
 		{{form.hidden_tag()}}
-			<b><p>Telefone:
-		    {{form.telefone}}
+			<b><p>Telefone</br>
+		    {{form.telefone(placeholder="Telefone principal...")}}
 		    </p></b>
-		    <b><p>Endereço:
-		    {{form.endereco}}
+		    <b><p>Endereço</br>
+		    {{form.endereco(placeholder="Seu endereço...")}}
 		    </p></b>
-		   <b><p>Cartão:
-		   	{{form.cartao}}
+		   <b><p>Cartão</br>
+		   	{{form.cartao(placeholder="ex:2222666688889999")}}
 		    </p></b>
-		   <b><p>CPF:
-		    {{form.cpf}}
+		   <b><p>CPF</br>
+		    {{form.cpf(placeholder="ex:99900044011")}}
 		    </p></b>
     		<input class="btn btn-success" type="submit" value="Atualizar dados">
 

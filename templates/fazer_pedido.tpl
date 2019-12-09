@@ -29,15 +29,16 @@
 			<th>Produtos</th>
 		</tr>
 		{% for dado in dados %}
-		<tr>
-			<td>
-				<input type="checkbox" name="produto" value="{{dado.id}}"/>
-					{{ dado.nome_produto }}
-			</td>
-			<td>
-				
-			</td>
-		</tr>
+		  <tr>
+		   <td>
+		    {% if dado.id in idsFav %}
+		        <input type="checkbox" name="produto" value="{{dado.id}}" checked/>
+		    {% else %}
+		        <input type="checkbox" name="produto" value="{{dado.id}}"/>
+		    {% endif %}
+		     {{ dado.nome_produto }}
+		   </td>
+		  </tr>
 		{% endfor %}
 	</table>
 </div>
@@ -54,6 +55,21 @@
 			</td>
 		</tr>
 	</table>
+
+	<div class="col-md-12">
+	<table class="table table-stripped">
+		<tr>
+			<th style="text-align: center;">Deseja agendar para uma próxima compra?</th>
+		</tr>
+		<tr>
+			<td>
+				A cada dia 
+				<input type="number" value="1" min="1" max="31" name="agendamento" style="width: 40px;">
+				do próximo mês.
+			</td>
+		</tr>
+	</table>
+	</div>
 	<a href="/pedidos" class="btn btn-info">Voltar</a>
 
 	<input type="submit" value="Avançar" class="btn btn-success">

@@ -3,7 +3,8 @@ from flask import Flask, request, render_template, redirect, flash, url_for, cur
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, AnonymousUserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, BooleanField,PasswordField,SubmitField, IntegerField, DateField, FloatField
 from wtforms.fields.html5 import EmailField
@@ -186,7 +187,6 @@ lm.anonymous_user = AnonymousUser
 class ProdutoForm(FlaskForm):
     nome_produto = StringField('Nome do produto', validators=[Length(max=150)])
     valor = FloatField('Valor', validators=[])
-    #quantidade = IntegerField('Quantidade', validators=[])
     botao = SubmitField('Cadastrar Produto')
 
 
@@ -197,12 +197,13 @@ class PedidosForm(FlaskForm):
     pago = BooleanField('Pago', validators=[])
     liberado_entrega = BooleanField('Liberado para entrega?', validators=[])
     entregue = BooleanField('Entregue?', validators=[])
+    data_agendamento = DateField('Data Agendamento',format='%d/%m/%Y',validators=[])
     botao = SubmitField('Fazer Pedido')
 
 class AtualizaPedidosForm(FlaskForm):
     pago = BooleanField('Pago', validators=[])
-    liberado_entrega = BooleanField('Liberado para entrega?', validators=[])
-    entregue = BooleanField('Entregue?', validators=[])
+    liberado_entrega = BooleanField('Liberado para entrega', validators=[])
+    entregue = BooleanField('Entregue', validators=[])
     botao = SubmitField('Atualizar Pedido')
 
 class UserForm(FlaskForm):
@@ -220,7 +221,7 @@ class UserForm(FlaskForm):
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
 """
-
+# Usado na parte de editar informações do perfil do usuario. (/usuario/edit/id)
 class UserProfileForm(FlaskForm):
     telefone = StringField('Telefone', validators=[Length(min=11, max=11)])
     endereco = StringField('Endereço', validators=[Length(max=100)])
@@ -281,15 +282,18 @@ class Produtos(db.Model):
     nome_produto = db.Column('nome_produto', db.String(50), unique=True)
     valor = db.Column('valor', db.Integer)
     favoritar = db.Column('favoritar', db.Boolean, default=False)
-####COLAR AQUI O FAVORITOS SE DER ERRO
-
-###
+    
 
 class Favoritos(db.Model):
     __tablename__ = "favoritos"
     id = db.Column(db.Integer, primary_key=True)
     usuarios_id= db.Column('usuarios_id',db.Integer, db.ForeignKey('usuarios.id'))
     produtos_id= db.Column('produtos_id',db.Integer, db.ForeignKey('produtos.id'))
+
+    
+
+    def __repr__(self):
+        return 'Favorito {}'.format(self.produtos_id)
     #periodicidade= db.Column(db.)
     #pedir ajuda pro professor nessa parte de favoritos
 
@@ -304,7 +308,20 @@ class Pedidos(db.Model):
     entregue         = db.Column('entregue', db.Boolean, default=False)
     dinheiro         = db.Column('dinheiro', db.Float, default=0)
     troco            = db.Column('troco', db.Float, default=0)
+    data_agendamento = db.Column('data_agendamento',db.Integer)
     ped_itens        = db.relationship('Itens')
+
+
+    def renovar(self):
+        return date.today().day == self.data_agendamento
+                
+
+    def data_renovacao(self):
+    	if self.data.month == 12:
+    		return '{}/{}'.format(self.data_agendamento, 1)
+    	else:
+    		return '{}/{}'.format(self.data_agendamento, self.data.month+1)
+
 
 class Itens(db.Model):
     __tablename__ = "itens"
@@ -360,7 +377,7 @@ def register():
         user = Usuario(username= form.username.data,role_id=1,email= form.email.data,password= form.password.data,registered_on= datetime.utcnow(),active=1)
         db.session.add(user)
         db.session.commit()
-        flash('Thanks for registering')
+        flash('Obrigado por se registrar. Faça seu login e entre no menu (perfil) para adicionar mais informações sobre voce.','success')
         return redirect(url_for('login'))
     return render_template('register.tpl', form=form)
 
@@ -381,10 +398,13 @@ def login():
         if user:
             if user.verify_password(form.password.data):
                 login_user(user)
-                flash("Logged in", 'success')
+                flash("Você foi conectado!", 'success')
+                flash("Caso seje seu primeiro acesso, vá para aba Perfil e complete suas informações", 'success')
                 return redirect('/')
+            else:
+                flash("Email ou Senha incorretos",'danger')
         else:
-            flash("Login inválido")
+            flash("Email ou Senha incorretos",'danger')
     else:
         print (form.errors)
     return render_template('login.html',form=form)
@@ -402,12 +422,14 @@ def logout():
 #####################CRUD USUARIO NA WEB###############
 
 @app.route('/perfil/<int:_id_>', methods=['GET'])
+@login_required
 def WebPerfil_get(_id_):
     dados = Usuario.query.filter_by(id=_id_).first()
     form = PerfilForm(obj=dados)
     return render_template("perfilform.tpl", form=form, id=dados.id)
 
 @app.route('/perfil/<int:_id_>', methods=['POST'])
+@login_required
 def WebPerfil_post(_id_):
     form = PerfilForm(request.form)
     print (form.cpf.data)
@@ -420,18 +442,18 @@ def WebPerfil_post(_id_):
             user.cpf= form.cpf.data
             user.nascimento= form.nascimento.data
             db.session.commit()
-            flash('Editado com sucesso', 'success')
+            flash('Informações do perfil editadas com sucesso!', 'success')
             print('sucesso')
         except Exception as e:
-            flash ('erro'+e ,'danger')
-            print('erro'+e)
+            flash ('erro'+str(e),'danger')
+            print('erro'+str(e))
     else:
         print('invalido', form.errors)
     return redirect('/usuario')
 
 
 @app.route('/usuario')
-#@admin_required
+@login_required
 def WebUser():
     papel = Role.query.filter_by(name='Administrator').first()
     if current_user.role_id == papel.id:
@@ -442,7 +464,6 @@ def WebUser():
 
 
 @app.route('/usuario/ins', methods=['GET'])
-
 @login_required
 def ins_get_usuario():
     form = UserProfileForm()
@@ -540,14 +561,14 @@ def produtos():
     return render_template('produtos.tpl', dados=dados)
     
 @app.route('/produtos/ins', methods=['GET'])
-#@admin_required
+@admin_required
 @login_required
 def ins_get_produtos():
     form = ProdutoForm()
     return render_template('insert_produto.tpl', form=form)
     
 @app.route('/produtos/ins', methods=['POST'])
-#@admin_required
+@admin_required
 @login_required
 def ins_post_produtos():
     form = ProdutoForm(request.form)
@@ -599,7 +620,7 @@ def edit_post_produtos(_id_):
     return redirect('/produtos')
 
 @app.route('/produtos/del/<int:_id_>', methods=['GET'])
-#@admin_required
+@admin_required
 @login_required
 def del_get_produtos(_id_):
     dados = Produtos.query.filter_by(id=_id_).first()
@@ -607,13 +628,24 @@ def del_get_produtos(_id_):
 
 
 @app.route('/produtos/del/<int:_id_>', methods=['POST'])
-#@admin_required
+@admin_required
 @login_required
 def del_post_produtos(_id_):
-    prod = Produtos.query.filter_by(id=_id_).first()
-    db.session.delete(prod)
-    db.session.commit()
-    return redirect('/produtos')
+	## VOltar para :
+	## prod = Produtos.query.filter_by(id=_id_).first()
+	## db.session.delete(prod)
+	## db.session.commit()
+	## return redirect('/produtos')
+	## Caso de erro
+	produto_item = Itens.query.filter_by(produtos_id=_id_).first()
+	if produto_item:
+		flash('Não é possivel deletar este produto, pois tem um pedido com o mesmo.', 'danger')
+	else:
+		flash('Produto deletado com sucesso!','success')
+		prod = Produtos.query.filter_by(id=_id_).first()
+		db.session.delete(prod)
+		db.session.commit()
+	return redirect('/produtos')
 
 
 @app.route('/produtos/view/<int:_id_>', methods=['GET'])
@@ -623,23 +655,46 @@ def view_get_produtos(_id_):
     return render_template('view_produto.tpl', dados=dados)
 
 ##############Construtor Pedidos############################
-
-@app.route('/pedidos')
+@app.route('/pedidos', methods=['GET','POST'])
 @login_required
 def ins_get_pedidos1():
-    papel= Role.query.filter_by(name='Administrator').first()
+	"""papel= Role.query.filter_by(name='Administrator').first()
     if current_user.role_id == papel.id:
         dados = Pedidos.query.all()
     else:
         dados = Pedidos.query.filter_by(user_id=current_user.id).all()
-    return render_template('pedidos.tpl', dados=dados)
+    return render_template('pedidos.tpl', dados=dados)	
+	"""
+	papel= Role.query.filter_by(name='Administrator').first()
+	#if current_user.role_id == papel.id:
+	
+	if request.method == 'POST':
+		data_ini = request.form.get('dataIni')
+		print('DATA INICIO',data_ini)
+		data_fim = request.form.get('dataFim')
+		print('Data FIM', data_fim)
+		#dados = Pedidos.query.filter_by(data=data_ini).filter_by(data_agendamento=data_fim).all()
+		dados = Pedidos.query.filter(Pedidos.data.between(data_ini,data_fim))
+		print('DADOS POST', dados)
+	elif request.method == 'GET':
+		print('REQUEST GET',request.form)
+		dados = Pedidos.query.all()
+		print('DADOS GET',dados)
+
+	else:
+		dados = Pedidos.query.filter_by(user_id=current_user.id).all()
+	return render_template('pedidos.tpl', dados=dados)
 
 @app.route('/pedidos/fazer', methods=['GET'])
 @login_required
 def ins_get_pedidos2():
     dados = Produtos.query.all()
+    dadosFav = Favoritos.query.filter_by(usuarios_id=current_user.id).all()
+    idsFav = [f.produtos_id for f in dadosFav]
 
-    return render_template('fazer_pedido.tpl', dados=dados)
+    #TESTANDO AGENDAMENTO DE COMPRAS
+    #dadosPed = Pedidos.query.filter_by(data_agendamento=)
+    return render_template('fazer_pedido.tpl', dados=dados, dadosFav=dadosFav, idsFav=idsFav)
 
 @app.route('/pedidos/fazer2', methods=['POST'])
 @login_required
@@ -648,13 +703,16 @@ def ins_get_pedidos3():
     dados = Produtos.query.filter(Produtos.id.in_(produtos)).all() #todos os produtos seleccionados no formulario anterior
     #print (produtos)#para ter uma visualização do que está sendo gravado
 
-    return render_template('pedido_quant_valor.tpl', dados=dados)
+    #Teste agendamento
+    agen = request.form.get("agendamento")
+    print("agendamento", agen)
+
+    return render_template('pedido_quant_valor.tpl', dados=dados, agen=agen)
 
 @app.route('/pedidos/infopedido', methods=['POST'])
 def inf_pedido():
     dados = Produtos.query.all()# testando para conseguir usar o dado do meu template info_pedido.tpl
-    
-
+    agen = request.form.get("agendamento")
     user_id=current_user.id
     
     ids    = request.form.getlist('id')
@@ -670,7 +728,7 @@ def inf_pedido():
         li.append(tupla)
         total  += float(precos[i])*int(qtdes[i])
 
-    novo_pedido = Pedidos(total=total, user_id=current_user.id)
+    novo_pedido = Pedidos(total=total, user_id=current_user.id,data_agendamento=agen)
     db.session.add(novo_pedido)
     db.session.commit()
     print(novo_pedido.id)
@@ -682,18 +740,17 @@ def inf_pedido():
         novo_item = ''
     novo_pedido.ped_itens.extend(itens)
     db.session.commit()
+    flash("Pedido registrado com sucesso!","success")
+
+
     return render_template('info_pedidos.tpl',ped_id=novo_pedido.id ,dado=dados, dados=li, tamanho= range(len(ids)), total=total)
 
 @app.route('/pedidos/consultar', methods=['GET'])
+@login_required
 def get_consultar():
-    dados = Pedidos.query.filter_by(user_id=current_user.id).all()
+    #dados = Pedidos.query.filter_by(user_id=current_user.id).all()
+    dados = Pedidos.query.filter_by(user_id=current_user.id).order_by(-Pedidos.id).all() #Filtro eles para cada usuario e ordeno a ficar decrescente
     return render_template('consultar.tpl', dados=dados)
-
-@app.route('/pedidos/consultar2/<int:_id_>', methods=['GET'])
-def consultar2(_id_):
-    dado = Pedidos.query.filter_by(id=_id_).first()
-    return render_template('consultar2.tpl', dado=dado)
-
 
 @app.route('/pedidos/edit/<int:_id_>', methods=['GET'])
 def edit_get_pedidos(_id_):
@@ -848,14 +905,8 @@ class AtualizaFavoritosForm(FlaskForm):
 
 
 @app.route('/favoritar', methods=['GET'])
+@login_required
 def get_fav():
-    
-    #my_sql = Template("""   SELECT f.*,u.*,p.* FROM favoritos f
-    #               on f.usuarios_id = u.id
-    #                join produtos p
-    #               on f.produtos_id = p.id 
-    #                WHERE u.id = $uid                   
-    #                   """)
     produtos = Produtos.query.all()
     my_sql= Template(""" SELECT p.id FROM produtos p
                     left join favoritos f 
@@ -871,85 +922,125 @@ def get_fav():
     li = []
     for i in resultados:
         li.append(i[0])
-    print ('lista',li)
+    #print ('lista',li)
 
     return render_template('favoritar.tpl', dados=li, produtos=produtos)
 
 @app.route('/favoritar2', methods=['POST'])
 def post_fav():
     favoritar = request.form.getlist("produto")
-    
-    print('produto', favoritar)
-    print('REQUEST FORM', request.form) 
-    
-    """
-    cli_id = request.form.get('produto')
-    fav = Favoritos.query.filter_by(usuarios_id=current_user.id).all()
-    print('CLI_ID',request.form)
-    """
-
-    """
-    favoritos = request.form.get('produto')
-    db.session.query(Favoritos)\
-        .filter(Favoritos.usuarios_id.in_(favoritos))\
-        .delete()
-    db.session.commit()
-    """
-    try:
-
-
-
-
-        """
-        fav.produtos_id = request.form.get('produto')
-        if fav.produtos_id == 'on':
-            fav.produtos_id = 1
-        else:
-            fav.produtos_id = 0
-        db.session.add(fav)
-        db.session.commit()
-        """
-
-        """
+    print('Favoritar-Formulario',favoritar)
+    try:    
         favorito = Favoritos.query.filter_by(usuarios_id=current_user.id).all()
-        print('favorito',favorito)
-        db.session.delete(favorito)
-        db.session.commit()
-        """
+        print('Favoritar', favoritar)
+        print('REQUEST FORM', request.form)
+        
+        l =[f.produtos_id for f in favorito]
+        print('L',l)
+        for i in favoritar:
+            i2 = int(i)
+            print('I-FAVORITAR',i2)
+            print('FAVORITO',favorito)
 
-        for id_produto in favoritar:
-            id_cliente = current_user.id
-            novo_favorito = Favoritos(produtos_id=id_produto,usuarios_id=id_cliente)
-            db.session.add(novo_favorito)
+
+            if i2 not in l:
+                print("ENTROU")
+                print('TYPE-FAVORITO',type(i2))
+                print('I-FAVORITO',i2)
+                print('FAVORITO',l)
+                novo_favorito = Favoritos(produtos_id=i2,usuarios_id=current_user.id)
+                print("novo favorito", novo_favorito)
+                db.session.add(novo_favorito)
+                novo_favorito = ""
+            else:
+                print("nº{} já existe no banco ".format(i2))
+        db.session.commit()
+        
+
+        # DELETAR 
+        fav = [int(n) for n in favoritar] 
+        print("FAV",fav)
+        for d in l:
+            print('D',d)
+            print('TIPO- D',type(d))
+            print('DEL - FAVORITO',l)
+            print('TIPO- L',type(l))
+            if d not in fav:
+                print('TIPO- D- IF',type(d))
+                print('TIPO- FAVORITAR IF',type(fav))
+                f = Favoritos.query.filter_by(produtos_id=d).filter_by(usuarios_id=current_user.id).first()
+                print('f',f)
+                print('TIPO- F',type(f))
+                db.session.delete(f)
+            else:
+                print("Beleza")
         db.session.commit()
 
-        flash('Favoritado!','success')
+        flash('Produto favoritado!','success')
         print('ok')
     except Exception as e:
         flash('Erro'+str(e),'danger')
-        print('erro'+str(e))
+        print('Erro '+str(e))
 
     return redirect('/favoritar')
 
+############ RENOVAR PEDIDO #############
+@app.route('/renovar-pedido/<int:_id>', methods=['GET'])
+def post_renova_pedido(_id):
+	dados = Pedidos.query.filter_by(id=_id).first()
+	print('DADOS RENOVAR',dados)
+	
+	dados.data = date.today()
+	print('Today',date.today())
+	db.session.commit()
+
+	return redirect('/pedidos')
+
+#######################################
+
+########### Relatório com mais informações do pedido (para o ADMIN) #############
+
+@app.route('/relatorio/<int:_id>', methods=['GET'])
+def get_relatorio(_id):
+	my_sql = Template("""select usuarios.username,usuarios.endereco,pedidos.data,itens.quantidade,itens.valor_total,produtos.nome_produto,itens.produtos_id, pedidos.id, pedidos.total
+				from pedidos
+				left join itens
+				on pedidos.id = itens.pedidos_id
+				left join produtos
+				on itens.produtos_id= produtos.id
+				left join usuarios
+				on pedidos.usuarios_id=usuarios.id
+				where pedidos.id='$id' """)
+	sql_raw = my_sql.safe_substitute(id=_id)
+	sql = text(sql_raw)
+	result = db.engine.execute(sql)
+	dados = [row for row in result]
+	print(dados)
+	print('sql',sql)
+	print('sql_raw',sql_raw)
+	print('my_sql',my_sql)
+	return render_template('relatorio.tpl', dadostpl=dados)
+###########  Mais informações do pedido (para o USUARIO) #############
+
+@app.route('/mais-informacoes/<int:_id>', methods=['GET'])
+def get_mais_info(_id):
+	my_sql = Template("""select usuarios.username,usuarios.endereco,pedidos.data,itens.quantidade,itens.valor_total,produtos.nome_produto,itens.produtos_id, pedidos.id, pedidos.total
+				from pedidos
+				left join itens
+				on pedidos.id = itens.pedidos_id
+				left join produtos
+				on itens.produtos_id= produtos.id
+				left join usuarios
+				on pedidos.usuarios_id=usuarios.id
+				where pedidos.id='$id' """)
+	sql_raw = my_sql.safe_substitute(id=_id)
+	sql = text(sql_raw)
+	result = db.engine.execute(sql)
+	dados = [row for row in result]
+	print(dados)
+	print('sql',sql)
+	print('sql_raw',sql_raw)
+	print('my_sql',my_sql)
+	return render_template('mais-info.tpl', dadostpl=dados)
+
 app.run(host='localhost', port=7000, debug=True)
-
-
-
-"""
-prod = Produtos.query.filter_by(id=_id_).first()
-    form = ProdutoForm(obj=prod)     
-    print (form.nome_produto.data)
-    if form.validate_on_submit():
-        try:
-            prod.nome_produto= form.nome_produto.data
-            prod.valor= form.valor.data
-            db.session.add(prod)
-            db.session.commit()
-            flash('Alterado o valor do produto!', 'success')
-            print('sucesso')
-        except Exception as e:
-            flash ('erro'+e,'danger')
-            print('erro'+e)
-    else:
-        print('invalido', form.errors)
-"""

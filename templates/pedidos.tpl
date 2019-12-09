@@ -1,4 +1,4 @@
-{% extends 'bootstrap/base.html' %}
+{% extends "base.tpl" %}
 {% block title %}
 	Pedidos
 {% endblock %}
@@ -10,45 +10,6 @@
     <!--<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>-->
 	<script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
 
-	<!--<script type="text/javascript">
-		$(document).ready(function(){
-			$('.checkbox').click(function() {
-				//var formData = $('#myForm').serialize();
-				//console.log('Bla bla:', formData);
-			/*$(this).trigger('click'); */
-			let values1 = 0;
-			/* $('table tr td :checkbox:checked').map(function () {
-                return $(this).closest('tr').find('td:first').text()});		 */
-            
-			$.ajax({
-				data: {
-					/*pago: $(this).attr('input[name="pago"]'),*/
-					pago: $(this).is(':checked'),
-					id: values1
-					/* $(this).find('._id' ).val() */
-				},
-				method:'POST',
-				url:'http://localhost:7000/atupagamento'
-			})
-			.done(function(data){
-				if (data.error) {
-					$('#errorAlert').text(data.error).show();
-					$('#successAlert').hide();
-				}
-				else {
-					$('successAlert').text(data.pago).show();
-					$('errorAlert').hide();
-				}
-			})
-			.fail(function(data){
-				alert("falhou");
-			});
-
-	});
-			
-		});
-	</script>-->
-
 {% endblock %}
 {% block styles%}
 	
@@ -57,11 +18,17 @@
 	<!-- Bootstrap core CSS -->
 	<link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
 	{{super()}}
+
+	<style type="text/css">
+		#cabecalho{
+			color: white;
+		}
+	</style>
 {% endblock %}
 {% block content %}
 {% include 'menu_superior.tpl' %}
 		
-		<h1>Pedidos</h1>
+		<h1 style="margin-left: 15px;">Pedidos</h1>
 		{% with messages = get_flashed_messages(with_categories=true) %}
 		  {% if messages %}
 		    <ul class="flashes">
@@ -71,35 +38,62 @@
 		    </ul>
 		  {% endif %}
 		{% endwith %}
-		<a class="btn btn-success" href="/pedidos/fazer">Faça seu pedido</a><br/><br/>
+		<a class="btn btn-success" href="/pedidos/fazer" style="margin-left: 15px;">Faça seu pedido</a><br/><br/>
 		
-		<form action="" method="POST" id="myForm">
+		
+		<div>
+		<div class="col-md-12">
+	      <form action="{{url_for('ins_get_pedidos1')}}" method="POST">
+	        <h4>
+	          Data inicial <input type="date" name="dataIni">
+	          Data Final <input type="date" name="dataFim">
+	        </h4>
+	        <button class="btn btn-primary" type="submit">Aplicar filtro</button>
+	      </form>
 		<table class="table table-hover table-responsive">
-			<tr>
-				<th>Nº do pedido</th>
-				<th>Total R$</th>
-				<th>Data</th>
-				<th>Atualizar</th>
+			<tr id="cabecalho" class="bg-dark table-bordered">
+				<th style="text-align: center;">Nº do pedido</th>
+				<th style="text-align: center;">Total R$</th>
+				<th style="text-align: center;">Data do Pedido</th>
+				<th style="text-align: center;">A cada dia [ ] do mês</th>
+				<th style="text-align: center;">Data Renovação (dia, mes)</th>
+				
 			</tr>
 			<tbody>
 				{% for dado in dados %}
-				<tr>
-					<td class="_id">{{dado.id}}</td>
-					<td>{{dado.total}}</td>
-					<td>{{dado.data}}</td>
-					<td>
-						<a class="btn btn-warning" href="/atupedido/{{dado.id}}">
-  				 			Atualizar
-						</a>
-					</td>
-					<!--<input type="hidden" name="id" value="{{dado.id}}">-->
-
-					
-
+					<tr class="table-bordered">
+						<td class="_id table-success" style="text-align: center;">{{dado.id}}</td>
+						<td style="text-align: center;" class="table-success">{{dado.total}}</td>
+						<td style="text-align: center;" class="table-success">{{dado.data.strftime('%d/%m/%Y')}}</td>
+						<td style="text-align: center;" class="table-success">{{dado.data_agendamento}}</td>
+						<td style="text-align: center;" class="table-success">{{dado.data_renovacao()}}</td>
+						<td>
+							<a class="btn btn-success" href="/atupedido/{{dado.id}}">
+	  				 			Atualizar
+							</a>
+						</td>
+						<td>
+							<a class="btn btn-info" href="/renovar-pedido/{{dado.id}}">
+	  				 			Renovar Pedido
+							</a>
+						</td>
+						<td>
+							<a class="btn btn-warning" href="/pedidos/del/{{dado.id}}">
+	  				 			Deletar Pedido
+							</a>
+						</td>
+						<td>
+							<a class="btn btn-danger" href="/relatorio/{{dado.id}}">
+								Relatório
+							</a>
+						</td>
 				</tr>
-
 				{% endfor %}
 			</tbody>
 		</table>
-		</form>
+	</div>
+
+		
+	</div>
+		
 {% endblock %}

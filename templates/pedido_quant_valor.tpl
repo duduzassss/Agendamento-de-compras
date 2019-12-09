@@ -39,7 +39,9 @@
 				<input type="number" class="cont prc quantidade" id="quantidade" name="quantidade" value="1" min="1" />
 			</td>
 			<td><input type="text" id="cont" name="cont" readonly="readonly" value="{{dado.valor}}"/></td>
+			
 			<td class="subtot">{{dado.valor}}</td>
+			<td><input type="hidden" name="agendamento" value="{{agen}}"></td>
 		</tr>
 		{% endfor %}
 		<tr><td colspan="4" >TOTAL</td><td id="total"></td></tr>

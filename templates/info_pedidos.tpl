@@ -1,8 +1,18 @@
 {% extends 'bootstrap/base.html' %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block content %}
+	
+	{% with messages = get_flashed_messages(with_categories=true) %}
+	    {% if messages %}
+	      <ul class="flashes" style="list-style: none; margin-left:-40px; text-align: center; font-size: 20px;">
+	      {% for category, message in messages %}
+	        <li class="alert alert-success">{{ message }}</li>
+	      {% endfor %}
+	      </ul>
+	    {% endif %}
+	 {% endwith %}
 
-	 <h1 style="text-align: center;">Informações do seu pedido</h1>
+	<h1 style="text-align: center;">Informações do seu pedido</h1>
 	<table class="table table-hover table-responsive">
 		<tbody>
 			<tr class="active">
@@ -37,16 +47,8 @@
 		
 	</table>
 	
-	<a class="btn btn-success" href="consultar2/{{ped_id}}">
+	<a class="btn btn-success" href="consultar">
   		Consultar pedido
 	</a>
 	
-	
-
-	<!--
-	<a href="/pedidos/fazer">
-	<input type="submit" value="Voltar">
-	</a>
-	<input type="submit" value="Confirmar compra">
-	-->
 {% endblock %}

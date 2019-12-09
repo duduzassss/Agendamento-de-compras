@@ -17,16 +17,17 @@
 {% block content %}
 {% include 'menu_superior.tpl' %}
 	
-		<h1>Produtos</h1>
 		{% with messages = get_flashed_messages(with_categories=true) %}
 		  {% if messages %}
-		    <ul class="flashes">
+		    <ul class="flashes" style="list-style: none; margin-left:-40px; text-align: center; font-size: 20px;">
 		    {% for category, message in messages %}
-		      <li class="alert alert-success">{{ message }}</li>
+		      <li class="alert alert-{{category}}">{{ message }}</li>
 		    {% endfor %}
 		    </ul>
 		  {% endif %}
 		{% endwith %}
+		<h1>Produtos</h1>
+		
 		<a class="btn btn-success" href="/produtos/ins">Inserir produto</a><br/><br/>
 		<table class="table table-hover">
 			<tr>

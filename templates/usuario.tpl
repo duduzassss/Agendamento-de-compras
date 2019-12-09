@@ -13,18 +13,17 @@
 {% block content %}
 {% include 'menu_superior.tpl' %}
 		
-		<h1>Usuários</h1>
 		{% with messages = get_flashed_messages(with_categories=true) %}
 		  {% if messages %}
 		    <ul class="flashes">
 		    {% for category, message in messages %}
-		      <li class="alert alert-{{ category }}">{{ message }}</li>
+		      <li class="alert alert-success" style="list-style: none; margin-left:-40px; text-align: center; font-size: 20px;">{{ message }}</li>
 		    {% endfor %}
 		    </ul>
 		  {% endif %}
 		{% endwith %}
-		
 
+		<h1>Usuários</h1>
 		<div class="alert alert-primary"><strong>Para adicionar as informações como, telefone, endereço, cartão, entre outros, acesse a aba perfil.</strong> </div>
 
 		<table class="table table-hover table-responsive">
@@ -51,12 +50,17 @@
 					<td>{{dado.endereco}}</td>
 					<td>{{dado.cartao}}</td>
 					<td>{{dado.cpf}}</td>
-					<td>{{dado.nascimento}}</td>
+					{% if dado.nascimento == None %}
+						<td>{{dado.nascimento}}</td>
+					{% else %}
+						<td>{{dado.nascimento.strftime('%d/%m/%Y')}}</td>
+					{% endif %}
 					<td>
-						<a class="btn btn-warning" href="/usuario/edit/{{dado.id}}">Editar</a>
+						<!--<a class="btn btn-warning" href="/usuario/edit/{{dado.id}}">Editar</a>-->
+						<a class="btn btn-warning" href="/perfil/{{dado.id}}">Perfil</a>
 						<a class="btn btn-info" href="/usuario/view/{{dado.id}}">Ver</a>
 						<a class="btn btn-danger" href="/usuario/del/{{dado.id}}">Deletar</a>
-						<a class="btn btn-secondary" href="/perfil/{{dado.id}}">Perfil</a>
+						
 					</td>
 				</tr>
 				{% endfor %}

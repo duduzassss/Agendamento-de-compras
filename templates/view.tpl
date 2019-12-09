@@ -19,7 +19,7 @@
 			<p>Endereço: {{dados.endereco}}</p>
 			<p>Cartão: {{dados.cartao}}</p>
 			<p>CPF: {{dados.cpf}}</p>
-			<p>Data de nascimento: {{dados.nascimento}}</p>
+			<p>Data de nascimento: {{dados.nascimento.strftime('%d/%m/%Y')}}</p>
 			<input type="submit" value="Voltar" />
 		</form>
 {% endblock %}

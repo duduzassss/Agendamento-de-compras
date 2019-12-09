@@ -7,6 +7,9 @@
     <meta name="author" content="">
 
     <title>Pagina Inicial - Agendamento de compras</title>
+    <!--Google Fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif&display=swap" rel="stylesheet">
+
 
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
@@ -16,6 +19,10 @@
       .container p a{
         float: left;
         margin-right: 10px;
+      }
+      h1,h2{
+        font-family: 'Noto Serif', serif;
+
       }
     </style>
   </head>
@@ -31,21 +38,49 @@
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           
-          <li class="nav-item active">
-            <a class="nav-link" href="pedidos">Pedidos<span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="produtos">Produtos<span class="sr-only">(current)</span></a>
-          </li>
+          {% if current_user.is_authenticated and current_user.is_administrator() %}
+            <li class="nav-item active">
+              <a class="nav-link" href="pedidos">Pedidos<span class="sr-only">(current)</span></a>
+            </li>
+          {% else %}
+            <li class="nav-item active">
+              <a class="nav-link" href="/pedidos/fazer">Fazer pedido<span class="sr-only">(current)</span></a>
+            </li>
+          {% endif %}
+
+          {% if current_user.is_authenticated and current_user.is_administrator() %}
+            <li class="nav-item active">
+              <a class="nav-link" href="produtos">Produtos<span class="sr-only">(current)</span></a>
+            </li>
+          {% endif %}
+
+          {% if current_user.is_authenticated and current_user.is_administrator() %}
           <li class="nav-item active">
             <a class="nav-link" href="usuario">Usuarios<span class="sr-only">(current)</span></a>
           </li>
+          {% else %}
           <li class="nav-item active">
-            <a class="nav-link" href="/pedidos/consultar">Consultar compras<span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="usuario">Perfil<span class="sr-only">(current)</span></a>
           </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="/favoritar">Favoritos<span class="sr-only">(current)</span></a>
-          </li>
+          {% endif %}
+          
+          {% if current_user.is_authenticated and current_user.is_administrator() %}
+          {% else %}
+            <li class="nav-item active">
+            <a class="nav-link" href="/pedidos/consultar">Consultar pedidos<span class="sr-only">(current)</span></a>
+            </li>
+          {% endif %}
+
+          {% if current_user.is_authenticated and current_user.is_administrator() %}
+          {% else %}
+            <li class="nav-item active">
+              <a class="nav-link" href="/favoritar">Favoritos<span class="sr-only">(current)</span></a>
+            </li>
+          {% endif %}
+
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+        <ul class="navbar-nav mr-auto">
           {% if current_user.is_anonymous %}
             <li class="nav-item active">
               <a class="nav-link" href="login">Entrar <span class="sr-only">(current)</span></a>
@@ -62,9 +97,6 @@
             </li>
           {% endif %}
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-          <input class="form-control mr-sm-2" type="text" placeholder="Pesquise aqui..." aria-label="Search">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Pesquisar</button>
         </form>
       </div>
     </nav>
@@ -74,10 +106,23 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <div class="container">
-          <h1 class="display-3">Bem-vindo(a) <editname style="text-transform: capitalize;">{{ current_user.username }}</editname>!</h1>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <ul class="flashes" style="list-style: none; margin-left:-40px; text-align: center; font-size: 20px;">
+              {% for category, message in messages %}
+                <li class="alert alert-success">{{ message }}</li>
+              {% endfor %}
+              </ul>
+            {% endif %}
+          {% endwith %}
+          <h1 class="display-3 nome">Bem-vindo(a) <editname style="text-transform: capitalize;">{{ current_user.username }}</editname>!</h1>
           <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
-          <p><a class="btn btn-success btn-lg" href="login" role="button">Entrar &raquo;</a></p>
-          <p><a class="btn btn-primary btn-lg" href="register" role="button">Registrar-se &raquo;</a></p>
+          
+          {% if current_user.is_authenticated %}
+          {% else %}
+            <p><a class="btn btn-success btn-lg" href="login" role="button">Entrar &raquo;</a></p>
+            <p><a class="btn btn-primary btn-lg" href="register" role="button">Registrar-se &raquo;</a></p>
+          {% endif %}
         </div>
       </div>
 
@@ -85,19 +130,43 @@
         <!-- Example row of columns -->
         <div class="row">
           <div class="col-md-4">
-            <h2>Sobre nós</h2>
-            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-            <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            {% if current_user.is_authenticated and current_user.is_administrator() %}
+              <h2>Pedidos</h2>
+              <p>Gerencie, analise, atualize, entre outras funcionalidades do software, os pedidos de seus clientes.</p>
+              <p><a class="btn btn-primary" href="/pedidos" role="button">Gerenciar Pedidos &raquo;</a></p>
+            {% else %}
+              <h2>Perfil</h2>
+              <p>Complete as informações do  seu perfil clicando no botao abaixo, para conseguir fazer suas compras.</p>
+              {% if current_user.is_authenticated %}
+                <p><a class="btn btn-primary" href="/perfil/{{ current_user.id }}" role="button">Ir para Perfil &raquo;</a></p>
+              {% else %}
+                <p><a class="btn btn-primary" href="/login" role="button">Ir para Perfil &raquo;</a></p>
+            {% endif %}
+            {% endif %}
           </div>
+
           <div class="col-md-4">
-            <h2>Localização</h2>
-            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-            <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            {% if current_user.is_authenticated and current_user.is_administrator() %}
+              <h2>Produtos</h2>
+              <p>Registre seus produtos de forma simples, rápida e prática, para começar a vende-los e gerar lucros.</p>
+              <p><a class="btn btn-primary" href="/produtos/ins" role="button">Adicionar um Produto &raquo;</a></p>
+            {% else %}
+              <h2>Faça seu pedido</h2>
+              <p>Realize seu pedido e tenha os melhores produtos e com alta qualidade, clique no botao abaixo e complete seu pedido.</p>
+              <p><a class="btn btn-primary" href="/pedidos/fazer" role="button">Fazer Pedido &raquo;</a></p>
+            {% endif %}
           </div>
+
           <div class="col-md-4">
-            <h2>Contato</h2>
-            <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-            <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            {% if current_user.is_authenticated and current_user.is_administrator() %}
+              <h2>Usuários</h2>
+              <p>Visualize seus clientes cadastrados no sistema, e verifique se não há pendências em seus cadastros.</p>
+              <p><a class="btn btn-primary" href="/usuario" role="button">Ir para lista de usuários &raquo;</a></p>
+            {% else %}
+              <h2>Favorite</h2>
+              <p>Faça dos seus produtos prediletos, os seus favoritos, para agilizar o processo uma próxima compra.</p>
+              <p><a class="btn btn-primary" href="/favoritar" role="button">Escolher Produtos &raquo;</a></p>
+            {% endif %}
           </div>
         </div>
 
