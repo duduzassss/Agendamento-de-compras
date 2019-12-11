@@ -24,6 +24,13 @@
         font-family: 'Noto Serif', serif;
 
       }
+      main{
+        margin-bottom: 75px;
+      }
+      .jumbotron{
+        background-color: #A9DEF9;
+      }
+      
     </style>
   </head>
 
@@ -116,7 +123,7 @@
             {% endif %}
           {% endwith %}
           <h1 class="display-3 nome">Bem-vindo(a) <editname style="text-transform: capitalize;">{{ current_user.username }}</editname>!</h1>
-          <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+          <p>Técnologia à serviço da população. Faça seu pedido com segurança e praticidade, no corforto do seu lar. Ao utilizar nossos serviços, voce terá como realizar pedidos, cadastrar produtos, cadastrar usuários, consultar pedidos, favoritar produtos prediletos, gerar relatório, filtrar pedidos, agendar pedidos, entre outras funcionalidades que virão por ai.</p>
           
           {% if current_user.is_authenticated %}
           {% else %}
@@ -176,7 +183,8 @@
 
     </main>
 
-    <footer class="container">
+
+    <footer class="container" style="text-align: center; font-size: 18px;">
       <p>&copy; Todos os direitos autorais reservados - 2019</p>
     </footer>
 

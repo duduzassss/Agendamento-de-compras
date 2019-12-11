@@ -8,6 +8,11 @@
 	<!-- Bootstrap core CSS -->
 	<link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
 	{{super()}}
+	<style type="text/css">
+		h1{
+			margin-left: 15px;
+		}
+	</style>
 {% endblock %}
 
 {% block content %}

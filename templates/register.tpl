@@ -34,6 +34,6 @@
 {% block content %}
 {% include 'menu_superior.tpl' %}
 
-<h1>Register</h1>
-{{ wtf.quick_form(form) }}
+<h1>REGISTRAR-SE</h1>
+{{ wtf.quick_form(form,button_map={'submit':'success'}) }}
 {%endblock%}

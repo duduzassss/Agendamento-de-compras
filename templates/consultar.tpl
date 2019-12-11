@@ -22,6 +22,9 @@
 		.rosa,.cinz{
 			text-align: left;
 		}
+		h1{
+			margin-left: 15px;
+		}
 		
 	</style>
 {% endblock %}
@@ -29,6 +32,7 @@
 {% include 'menu_superior.tpl' %}
 		
 		<h1>Consulta de pedido</h1>
+		
 		{% with messages = get_flashed_messages(with_categories=true) %}
 		  {% if messages %}
 		    <ul class="flashes">
@@ -52,43 +56,11 @@
 				<th class="lib">Liberado</th>
 				<th class="entr">Entregue</th>
 				
+
 			</tr>
 			<tbody>
 				{% for dado in dados %}
-				<tr class="table-bordered">
-					{% if dado.renovar() %}
-						<td class="_id table-danger">{{dado.id}}</td>
-						<td class="table-danger">{{dado.total}}</td>
-						<td class="table-danger">{{dado.data.strftime('%d/%m/%Y')}}</td>
-						<td class="table-danger">{{dado.data_agendamento}}</td>
-						<td class="table-danger">{{dado.data_renovacao()}}</td>
-						<td class="table-danger">
-						<input type="checkbox" onclick="return false;" name="pago" 
-							{% if dado.pago == True %}
-								checked
-							{% endif %}/>
-						</td>
-						<td class="table-danger">
-						<input type="checkbox" onclick="return false;" name="liberado_entrega" 
-							{% if dado.liberado_entrega == True %}
-								checked
-							{% endif %}/>
-						</td>
-						<td class="table-danger">
-						<input type="checkbox" onclick="return false;" name="entregue" 
-							{% if dado.entregue == True %}
-								checked
-							{% endif %}/>
-						</td>
-						<td>
-							<a class="btn btn-success" href="#">
-	  				 			Cancelar Pedido
-							</a>
-						</td>
-						
-
-						<input type="hidden" name="id" value="{{dado.id}}">
-					{% else %}
+				<tr class="table-bordered">					
 						<td class="_id table-active">{{dado.id}}</td>
 						<td class="table-active">{{dado.total}}</td>
 						<td class="table-active">{{dado.data.strftime('%d/%m/%Y')}}</td>
@@ -113,7 +85,7 @@
 							{% endif %}/>
 						</td>
 						<td>
-							<a class="btn btn-warning" href="/pedidos/del/{{dado.id}}">
+							<a class="btn btn-danger" href="/pedidos/del/{{dado.id}}">
 	  				 			Deletar Pedido
 							</a>
 						</td>
@@ -125,7 +97,7 @@
 
 						<input type="hidden" name="id" value="{{dado.id}}">
 					
-					{% endif %}
+					
 				</tr>
 
 				{% endfor %}

@@ -16,6 +16,8 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 
+import ipdb
+
 from string import Template # importação do join do favoritar que o professor me mandou
 
 app = Flask(__name__)
@@ -30,6 +32,7 @@ app.config['SECURITY_PASSWORD_HASH'] = 'pbkdf2_sha512'
 # Replace this with your own salt.
 app.config['SECURITY_PASSWORD_SALT'] = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 app.config['FLASKY_ADMIN'] = 'eduardo.pbitencourt@hotmail.com'
+
 
 
 bootstrap = Bootstrap(app)
@@ -360,13 +363,13 @@ class PerfilForm(FlaskForm):
     botao = SubmitField("Enviar")
 
 class RegisterForm(FlaskForm):
-    username = StringField('Username', validators= [Length(min=4, max=25)])
-    email = EmailField('Email Address', validators= [Length(min=6, max=35), Email()])
-    password = PasswordField('New Password', validators= [
+    username = StringField('NOME', validators= [Length(min=4, max=25)])
+    email = EmailField('SEU EMAIL', validators= [Length(min=6, max=35), Email()])
+    password = PasswordField('SENHA', validators= [
         DataRequired(),
         EqualTo('confirm', message='P/indexasswords must match')
     ])
-    confirm = PasswordField('Repeat Password')
+    confirm = PasswordField('SENHA NOVAMENTE')
     submit = SubmitField('Registrar-se')
    
 
@@ -383,10 +386,10 @@ def register():
 
 
 class LoginForm (FlaskForm):
-    email = EmailField("Email", validators=[DataRequired()])
-    password = PasswordField("Password",validators=[DataRequired()])
+    email = EmailField("EMAIL", validators=[DataRequired()])
+    password = PasswordField("SENHA",validators=[DataRequired()])
     #remember_me = BooleanField("Lembrar-me")
-    botao_entrar = SubmitField("Entrar")
+    botao_entrar = SubmitField("Conectar-se")
 
 
 @app.route("/login", methods=["GET","POST"])
@@ -414,7 +417,8 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    flash("Você foi desconectado.",'danger')
+    return redirect(url_for('index'))
 
 ######################################################
     
@@ -524,7 +528,7 @@ def edit_post_usuario(_id_):
 
 
 @app.route('/usuario/view/<int:_id_>', methods=['GET'])
-#@admin_required
+@login_required
 def view_get_usuario(_id_):
     dados = Usuario.query.filter_by(id=_id_).first()
 
@@ -533,7 +537,7 @@ def view_get_usuario(_id_):
 
 
 @app.route('/usuario/del/<int:_id_>', methods=['GET'])
-#@admin_required
+@login_required
 def del_get_usuario(_id_):
     dados = Usuario.query.filter_by(id=_id_).first()
 
@@ -541,7 +545,7 @@ def del_get_usuario(_id_):
 
 
 @app.route('/usuario/del/<int:_id_>', methods=['POST'])
-#@admin_required
+@login_required
 def del_post_usuario(_id_):
     user = Usuario.query.filter_by(id=_id_).first()
     db.session.delete(user)
@@ -554,7 +558,7 @@ def del_post_usuario(_id_):
 
 ####################Construtores_produtos abaixo##############################
 @app.route('/produtos')
-#@admin_required
+@admin_required
 def produtos():
     dados = Produtos.query.all()
 
@@ -590,7 +594,7 @@ def ins_post_produtos():
     return redirect('/produtos')
     
 @app.route('/produtos/edit/<int:_id_>', methods=['GET'])
-#@admin_required
+@admin_required
 @login_required
 def edit_get_produtos(_id_):
     dados = Produtos.query.filter_by(id=_id_).first()
@@ -598,7 +602,7 @@ def edit_get_produtos(_id_):
     return render_template('edit_produto.tpl', dado=dados, form=form)
 
 @app.route('/produtos/edit/<int:_id_>', methods=['POST'])
-#@admin_required
+@admin_required
 @login_required
 def edit_post_produtos(_id_):
     prod = Produtos.query.filter_by(id=_id_).first()
@@ -649,6 +653,7 @@ def del_post_produtos(_id_):
 
 
 @app.route('/produtos/view/<int:_id_>', methods=['GET'])
+@admin_required
 @login_required
 def view_get_produtos(_id_):
     dados = Produtos.query.filter_by(id=_id_).first()
@@ -688,13 +693,13 @@ def ins_get_pedidos1():
 @app.route('/pedidos/fazer', methods=['GET'])
 @login_required
 def ins_get_pedidos2():
-    dados = Produtos.query.all()
-    dadosFav = Favoritos.query.filter_by(usuarios_id=current_user.id).all()
-    idsFav = [f.produtos_id for f in dadosFav]
+	dados = Produtos.query.all()
+	dadosFav = Favoritos.query.filter_by(usuarios_id=current_user.id).all()
+	idsFav = [f.produtos_id for f in dadosFav]
+	
 
-    #TESTANDO AGENDAMENTO DE COMPRAS
-    #dadosPed = Pedidos.query.filter_by(data_agendamento=)
-    return render_template('fazer_pedido.tpl', dados=dados, dadosFav=dadosFav, idsFav=idsFav)
+	return render_template('fazer_pedido.tpl', dados=dados, dadosFav=dadosFav, idsFav=idsFav)
+
 
 @app.route('/pedidos/fazer2', methods=['POST'])
 @login_required
@@ -710,6 +715,7 @@ def ins_get_pedidos3():
     return render_template('pedido_quant_valor.tpl', dados=dados, agen=agen)
 
 @app.route('/pedidos/infopedido', methods=['POST'])
+@login_required
 def inf_pedido():
     dados = Produtos.query.all()# testando para conseguir usar o dado do meu template info_pedido.tpl
     agen = request.form.get("agendamento")
@@ -753,12 +759,14 @@ def get_consultar():
     return render_template('consultar.tpl', dados=dados)
 
 @app.route('/pedidos/edit/<int:_id_>', methods=['GET'])
+@login_required
 def edit_get_pedidos(_id_):
     dados = Pedidos.query.filter_by(id=_id_).first()
     form = PedidosForm()
     return render_template('edit_pedidos.tpl', dado=dados, form=form)
 
 @app.route('/pedidos/edit/<int:_id_>', methods=['POST'])
+@login_required
 def edit_post_pedidos(_id_):
     ped = Pedidos.query.filter_by(id=_id_).first()
     print(ped)#para ter uma visualização do que está sendo gravado
@@ -785,29 +793,41 @@ def edit_post_pedidos(_id_):
 
 
 @app.route('/pedidos/del/<int:_id_>', methods=['GET'])
+@login_required
 def del_get_pedidos(_id_):
     dados = Pedidos.query.filter_by(id=_id_).first()
     return render_template('delete_pedidos.tpl', dados=dados)
 
 
 @app.route('/pedidos/del/<int:_id_>', methods=['POST'])
+@login_required
 def del_post_pedidos(_id_):
-    ped = Pedidos.query.filter_by(id=_id_).first()
-    print(ped)#para ter uma visualização do que está sendo gravado
-    db.session.delete(ped)
-    db.session.commit()
-    return redirect('/pedidos')
+	papel = Role.query.filter_by(name='Administrator').first()
+	if current_user.role_id == papel.id:
+		ped = Pedidos.query.filter_by(id=_id_).first()
+		print(ped)#para ter uma visualização do que está sendo gravado
+		db.session.delete(ped)
+		db.session.commit()
+		return redirect('/pedidos')
+	else:
+		ped = Pedidos.query.filter_by(id=_id_).first()
+		print(ped)#para ter uma visualização do que está sendo gravado
+		db.session.delete(ped)
+		db.session.commit()
+		return redirect('/pedidos/consultar')
 
-@app.route('/pedidos/view/<int:_id_>', methods=['GET'])
+@app.route('/pedidos/view/<int:_id_>', methods=['GET']) # ACHO QUE NAO TEM NECESSIDADE DESSA ROTA, POIS CRIEI UMA CHAMADA RELATORIO
+@login_required
 def view_get_pedidos(_id_):
     dados = Pedidos.query.filter_by(id=_id_).first()
     return render_template('view_pedidos.tpl', dados=dados)
     
 
     
-########### VERIFICAÇÃO  PAGAMENTO ############
+########### VERIFICAÇÃO  PAGAMENTO, LIBERADO, E ENTREGUE ############
 @app.route('/atupedido/<int:_id_>', methods=['GET'])
 @admin_required
+@login_required
 def get_atupedido(_id_):
     dado = Pedidos.query.filter_by(id=_id_).first()
     print(dado)
@@ -816,6 +836,7 @@ def get_atupedido(_id_):
     return render_template('atupedido.tpl', dado=dado, form=form)
 
 @app.route('/atupedido2', methods=['POST'])
+@admin_required
 def post_atupedido():
     id = request.form.get('id')
     ped = Pedidos.query.filter_by(id=id).first()
@@ -850,53 +871,7 @@ def post_atupedido():
         print('erro'+str(e))
     return redirect('/pedidos')
 #######################################
-############FAVORITOS##################
-@app.route('/favoritos')
-def lista_favoritos_produtos():
-    sql = text("""select produtos.id, produtos.nome_produto, produtos.valor, data_compra,eid,data_renova_compra from produtos
-    left join (select data_compra,id as eid,produtos_id,data_renova_compra, max(data_compra) as empr from favoritos group by produtos_id)
-    on produtos_id = produtos.id
-    group by (produtos.id)""")
-    dados = db.engine.execute(sql).fetchall()
-    print(dados)
-    return render_template('favorita_produto.tpl', dadostpl = dados)  
 
-@app.route('/favoritosusuario/<_lid>')
-def lista_favoritos_usuarios(_lid):
-    dados = Usuario.query.all()
-    return render_template('favoritos_usuarios.tpl', dadostpl = dados, livro_id=_lid)  
-
-
-
-
-"""
-@app.route('/emprestimoconfirma/<_uid>/<_lid>')
-
-def lista_empr_confirma(_uid,_lid):
-    usuario = Usuario.query.filter_by(id=_uid).first()
-    livro   = Livro.query.filter_by(id=_lid).first()
-    return render_template('livros/emprestimo_confirma.tpl', usuario=usuario, livro=livro)
-
-
-@livros.route('/emprestimoefetua', methods=['POST'])
-
-def lista_empr_efetua():
-    empr = True
-    try:
-        U = request.form.get('id_usuario')
-        L = request.form.get('id_livro')
-        usuario = Usuario.query.filter_by(id=U).first()
-        livro   = Livro.query.filter_by(id=L).first()
-        livro.emprestado.append(usuario)
-        livro.status = 1
-        db.session.add(livro)
-        db.session.commit()
-        flash('Emprestado para o usuario [{}] o livro [{}] do autor [{}].'.format(usuario.nome,livro.titulo,livro.autor),'success')
-    except Exception as e:
-        flash('NÃO emprestado para o usuario {} o livro {} do autor {}.'.format(usuario.nome,livro.titulo,livro.autor), 'danger')
-    return redirect(url_for('livros.lista_empr_livros'))
-
-"""
 
 #######################################
 class AtualizaFavoritosForm(FlaskForm):
@@ -927,6 +902,7 @@ def get_fav():
     return render_template('favoritar.tpl', dados=li, produtos=produtos)
 
 @app.route('/favoritar2', methods=['POST'])
+@login_required
 def post_fav():
     favoritar = request.form.getlist("produto")
     print('Favoritar-Formulario',favoritar)
@@ -986,6 +962,7 @@ def post_fav():
 
 ############ RENOVAR PEDIDO #############
 @app.route('/renovar-pedido/<int:_id>', methods=['GET'])
+@admin_required
 def post_renova_pedido(_id):
 	dados = Pedidos.query.filter_by(id=_id).first()
 	print('DADOS RENOVAR',dados)
@@ -1001,6 +978,7 @@ def post_renova_pedido(_id):
 ########### Relatório com mais informações do pedido (para o ADMIN) #############
 
 @app.route('/relatorio/<int:_id>', methods=['GET'])
+@admin_required
 def get_relatorio(_id):
 	my_sql = Template("""select usuarios.username,usuarios.endereco,pedidos.data,itens.quantidade,itens.valor_total,produtos.nome_produto,itens.produtos_id, pedidos.id, pedidos.total
 				from pedidos
@@ -1023,6 +1001,7 @@ def get_relatorio(_id):
 ###########  Mais informações do pedido (para o USUARIO) #############
 
 @app.route('/mais-informacoes/<int:_id>', methods=['GET'])
+@login_required
 def get_mais_info(_id):
 	my_sql = Template("""select usuarios.username,usuarios.endereco,pedidos.data,itens.quantidade,itens.valor_total,produtos.nome_produto,itens.produtos_id, pedidos.id, pedidos.total
 				from pedidos

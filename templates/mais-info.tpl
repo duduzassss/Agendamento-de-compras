@@ -25,7 +25,13 @@
 			margin-bottom: 20px;
 		}
 		dinheiro{
-			font-size: 30px;
+			font-size: 35px;
+			color:green;
+			font-weight: bold;
+		}
+		rs{
+			color: green;
+			font-weight: bold;
 		}
 	</style>
 {% endblock %}
@@ -49,7 +55,7 @@
 			<h4><strong>Nome:</strong> {{dadostpl[0][0]}}</h4>
 			<h4><strong>Endereço:</strong> {{dadostpl[0][1]}}</h4>
 			<h4><strong>Data do pedido:</strong> {{dadostpl[0][2]}}</h4>
-			<h4><strong>Total a pagar:</strong> R$<dinheiro>{{dadostpl[0][8]}}</dinheiro></h4>
+			<h4><strong>Total a pagar:</strong> <rs>R$</rs><dinheiro>{{dadostpl[0][8]}}</dinheiro></h4>
 
 		<table class="table table-hover table-responsive">
 			<tr class="bg-dark table-bordered">

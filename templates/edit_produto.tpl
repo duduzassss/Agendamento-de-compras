@@ -8,6 +8,17 @@
 	<!-- Bootstrap core CSS -->
 	<link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
 	{{super()}}
+	<style type="text/css">
+		h1{
+			margin-left: 15px;
+		}
+		p{
+			margin-left: 15px;
+		}
+		.botao{
+			margin-left: 15px;
+		}
+	</style>
 {% endblock %}
 {% block content %}
 {% include 'menu_superior.tpl' %}
@@ -17,7 +28,7 @@
 		{{form.hidden_tag()}}
 			<div class="alert alert-primary"><strong>Você está editando o produto:</strong> <strong style="color: black; text-transform: uppercase;">{{dado.nome_produto}}</strong> </div>
 
-		    <p>Valor:
+		    <p>VALOR:
 		    {{form.valor}}
 		    
 		    </p>
@@ -26,6 +37,6 @@
 		   	{{form.quantidade}}
 		    </p>
 		-->
-    		<input type="submit" value="Atualizar dados">
+    		<input type="submit" value="Atualizar dados" class="botao btn btn-success">
   		</form>
 {% endblock %}

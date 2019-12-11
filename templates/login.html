@@ -37,8 +37,8 @@
 {% endwith %}
 
 
-<h1>Login</h1>
-{{ wtf.quick_form(form=form,action=url_for('login')) }}
+<h1>ENTRAR</h1>
+{{ wtf.quick_form(form=form,action=url_for('login'),button_map={'botao_entrar':'success'}) }}
 {% endblock %}
 
 
